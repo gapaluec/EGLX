@@ -25,10 +25,25 @@
 
 #define CWColormap			(1L<<13)
 
+#define KeyRelease		3
 #define KeyPressMask		(1L<<0)
+#define KeyReleaseMask			(1L<<1)
 #define CWEventMask			(1L<<11)
 #define ButtonPressMask		(1L<<2)
+#define ButtonReleaseMask		(1L<<3)
+#define PointerMotionMask		(1L<<6)
+#define FocusChangeMask			(1L<<21)
+#define FocusOut		10
+#define ClientMessage		33
+
+#define ButtonRelease		5
 #define ButtonMotionMask	(1L<<3)
+#define Button1Mask		(1<<8)
+#define Button2Mask		(1<<9)
+#define Button3Mask		(1<<10)
+#define Button4Mask		(1<<11)
+#define Button5Mask		(1<<12)
+
 #define ExposureMask		(1L<<15)
 #define StructureNotifyMask	(1L<<17)
 
@@ -39,7 +54,8 @@
 #define MotionNotify		6
 
 #define XLookupKeySym		3
-
+#define SubstructureRedirectMask	(1L<<20)
+#define SubstructureNotifyMask		(1L<<19)
 #define PropModeReplace		0
 #define PropModePrepend		1
 #define PropModeAppend		2
@@ -64,6 +80,13 @@
 #define GLX_ACCUM_ALPHA_SIZE 17
 #define GLX_SAMPLE_BUFFERS 100000
 #define GLX_SAMPLES		100001
+#define GLX_WINDOW_BIT                    0x00000001
+#define GLX_RENDER_TYPE			0x8011
+#define GLX_RGBA_BIT			0x00000001
+#define GLX_TRUE_COLOR			0x8002
+#define GLX_DRAWABLE_TYPE		0x8010
+
+
 
 #define GLX_VENDOR		1
 #define GLX_VERSION		2
@@ -75,7 +98,8 @@
 #define GL_BACK_LEFT	0x0402
 #define GL_BACK_RIGHT	0x0403
 #define GL_BACK			0x0405
-
+#define GLX_X_RENDERABLE                  0x8012
+#define GLX_X_VISUAL_TYPE                 0x22
 #define GLX_RGBA_TYPE	0x8014
 
 typedef unsigned long int XID;
@@ -282,12 +306,15 @@ typedef unsigned int GLXContext; /* very bad, but makes it work !*/
 
 /*                PROTOTYPES					*/
 /* -------------------------------------------- */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern int EGLX_main (Bool placement);
 extern int EGLX_XParseGeometry (char *geometry, int *x, int *y, unsigned int *width, unsigned int *height);
 extern char* EGLX_XDisplayName (char *string);
-extern int EGLX_XStoreName (Display *dpy, Window win, char *wname);
-extern Display* EGLX_XOpenDisplay (char *dpy);
+extern int EGLX_XStoreName (Display *dpy, Window win, const char *wname);
+extern Display* EGLX_XOpenDisplay (const char *dpy);
 extern unsigned int EGLX_XCreateWindow (Display *dpy, Window win, int x, int y, unsigned int width, unsigned int height, unsigned int border_width, int depth, unsigned int clas, Visual *visual, unsigned long mask, XSetWindowAttributes *attrs);
 extern unsigned int EGLX_XCreateSimpleWindow (Display *dpy, Window win, int x, int y, unsigned int width, unsigned int height, unsigned int border_width, unsigned long border, unsigned long background);
 extern void EGLX_XSetNormalHints (Display *dpy, Window win, XSizeHints *hints);
@@ -322,7 +349,9 @@ extern Bool EGLX_glXQueryExtension (Display *dpy, int *error, int *event);
 extern const char* EGLX_glXQueryExtensionsString (Display *dpy, int scr);
 extern const char* EGLX_glXGetClientString (Display *dpy, int value);
 extern void* EGLX_glXGetProcAddressARB (const unsigned char *procname);
-
+extern int EGLX_XGetFBConfigAttrib (Display *dpy, GLXFBConfig config, int attribute, int *value);
+extern GLXFBConfig* EGLX_XChooseFBConfig(Display * dpy, int screen,	const int * attrib_list, int * nelements);
+extern XVisualInfo* EGLX_XGetVisualFromFBConfig(	Display * dpy, GLXFBConfig config);
 extern struct wl_surface* ELGX_wl_surface_get (int win);
 extern struct wl_shell_surface* EGLX_wl_shell_surface_get (int win);
 extern struct wl_egl_window* EGLX_wl_egl_window_get (int win);
@@ -353,7 +382,9 @@ extern struct wl_egl_window* EGLX_wl_egl_window_get (int win);
 #define XGetGeometry			EGLX_XGetGeometry
 #define XGetVisualInfo			EGLX_XGetVisualInfo
 #define XVisualIDFromVisual		EGLX_XVisualIDFromVisual
-
+#define XGetFBConfigAttrib 		EGLX_XGetFBConfigAttrib
+#define XChooseFBConfig 		EGLX_XChooseFBConfig
+#define XGetVisualFromFBConfig  EGLX_XGetVisualFromFBConfig
 #define XCreateColormap(D,W,V,A) 46137345
 #define XFree(R)				NULL
 
@@ -393,9 +424,11 @@ extern struct wl_egl_window* EGLX_wl_egl_window_get (int win);
 
  /* unimplemented APIs ; we are 1.2, there are >= 1.3 */
 #define glXMakeContextCurrent(D,DR1,DR2,C) False
-#define glXChooseFBConfig(D,S,DA,R)	   NULL
-#define glXGetVisualFromFBConfig(D,C)      NULL
+// #define glXChooseFBConfig(D,S,DA,R)	   NULL
+// #define glXGetVisualFromFBConfig(D,C)      NULL
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

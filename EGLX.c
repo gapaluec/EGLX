@@ -5,7 +5,7 @@
 #include <wayland-client.h>
 #include <wayland-egl.h>
 #include <EGL/egl.h>
-#include <EGL/eglmesaext.h>
+//#include <EGL/eglmesaext.h>
 
 #include "EGLX.h"
 
@@ -222,7 +222,7 @@ char* EGLX_XDisplayName (char *string)
 }
 
   /* sets the potential Window title */
-int EGLX_XStoreName (Display *dpy, Window win, char *wname)
+int EGLX_XStoreName (Display *dpy, Window win,const char *wname)
 {
 	window[win-1].title = wname;
 
@@ -230,7 +230,7 @@ int EGLX_XStoreName (Display *dpy, Window win, char *wname)
 }
 
   /* connects to the current display */
-Display* EGLX_XOpenDisplay (char *dpy)
+Display* EGLX_XOpenDisplay (const char *dpy)
 { 
 	edpy = eglGetDisplay ((EGLNativeDisplayType) display->display);
 	assert (edpy != NULL);
@@ -674,6 +674,54 @@ const char* EGLX_glXGetClientString (Display *dpy, int value)
 void* EGLX_glXGetProcAddressARB(const unsigned char *procname)
 {
 	procname = NULL;
+}
+
+int EGLX_XGetFBConfigAttrib (Display *dpy, GLXFBConfig config, int attribute, int *value)
+{
+EGLBoolean bVal;
+if (attribute==GLX_SAMPLE_BUFFERS)
+	bVal = eglGetConfigAttrib(dpy, config, EGL_SAMPLE_BUFFERS, value);
+if (attribute==GLX_SAMPLES)
+	bVal = eglGetConfigAttrib(dpy, config, EGL_SAMPLES, value);
+if(bVal==EGL_TRUE)
+	return 1;
+return 0;
+}
+
+GLXFBConfig* EGLX_XChooseFBConfig(Display * dpy, int screen,	const int * attrib_list, int * nelements)
+{
+	GLXFBConfig configs;
+	// 5 - random number //gapal
+	eglChooseConfig(dpy, attrib_list, configs, 5, nelements);
+	return configs;
+}
+
+extern XVisualInfo* EGLX_XGetVisualFromFBConfig(Display * dpy, GLXFBConfig config)
+{
+	//https://chromium.googlesource.com/chromiumos/third_party/glmark2/+/3a13b4e48b4e3fd929fc5d07e0999e3fa39e3a1e/src/canvas-x11-egl.cpp
+	XVisualInfo vis_tmpl;
+    XVisualInfo *vis_info;
+    int num_visuals;
+    EGLint vid;
+    //if (!ensure_egl_config())
+        // return 0;
+    if (!eglGetConfigAttrib(xdpy, config,
+                            EGL_NATIVE_VISUAL_ID, &vid))
+    {
+        // Log::error("eglGetConfigAttrib() failed with error: %d\n", eglGetError());
+        return 0;
+    }
+    // // The X window visual must match the EGL config
+    vis_tmpl.visualid = vid;
+    // XVisualInfo* EGLX_XGetVisualInfo (Display *dpy, long vinfo_mask, XVisualInfo *vinfo_templ, int *nitems_ret)
+    vis_info = EGLX_XGetVisualInfo(dpy, VisualIDMask, &vis_tmpl,
+                             &num_visuals);
+    if (!vis_info) {
+        // Log::error("couldn't get X visual\n");
+        return 0;
+    }
+    return vis_info;
+
 }
 
  /* wrapper-specific functions, needed to access the wrapped window position */
